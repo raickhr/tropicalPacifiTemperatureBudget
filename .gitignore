@@ -1,0 +1,4 @@
+**/*.nc
+**/*.tmp
+**/*.log
+**/*.ipynb_checkpoints/
