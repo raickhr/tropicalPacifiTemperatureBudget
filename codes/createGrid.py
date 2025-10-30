@@ -2,14 +2,14 @@ from netCDF4 import Dataset
 import numpy as np
 import xarray as xr
 
-fldLoc = '../data/'
+fldLoc = '/srv/seolab/srai/tropicalPacifiTemperatureBudget/WPWP_GLORYS_data/'
 earthRad = 6.371e6
-fileName = '../data/tropicalAtlantic_Mar2May_year_2010to2019.nc'
+fileName = 'GLORYS12v1_dailyAvg_2017-12-31.nc'
 gridFileName = fldLoc + 'glorysGrid.nc'
 latVar = 'latitude'
 lonVar = 'longitude'
 
-ds = Dataset(fileName)
+ds = Dataset(fldLoc + fileName)
 
 lat = np.array(ds.variables[latVar])
 lon = np.array(ds.variables[lonVar])
@@ -56,6 +56,7 @@ xds = xr.Dataset(
 xds.to_netcdf(gridFileName)
 
 xds.close()
+
 
 
 
