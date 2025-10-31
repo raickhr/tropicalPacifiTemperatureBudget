@@ -11,26 +11,19 @@ lonVar = 'longitude'
 
 ds = Dataset(fldLoc + fileName)
 
-lat = np.array(ds.variables[latVar])
-lon = np.array(ds.variables[lonVar])
+latInDeg = np.array(ds.variables[latVar])
+lonInDeg = np.array(ds.variables[lonVar])
 
 ds.close()
 
-xlen = len(lon)
-ylen = len(lat)
+xlen = len(lonInDeg)
+ylen = len(latInDeg)
 
 dx = np.zeros((ylen, xlen), dtype=float)
 dy = np.zeros((ylen, xlen), dtype=float)
 
-if np.max(abs(lat)) > 2:
-    latInDeg = lat.copy()
-    lonInDeg = lon.copy()%360
-    lat = np.deg2rad(lat)
-    lon = np.deg2rad(lon)
-else:
-    latInDeg = np.rad2deg(lat)
-    lonInDeg = np.rad2deg(lon)%360
-
+lon = np.deg2rad(lonInDeg)
+lat = np.deg2rad(latInDeg)
 
 dlon = abs(lon[1] - lon[0])
 dlat = abs(lat[1] - lat[0])
@@ -40,15 +33,13 @@ for i in range(ylen):
     dx[i,:] = R*dlon
     dy[i,:] = earthRad * dlat
 
-coords = {'lat': latInDeg, 'lon': lonInDeg}
+coords = {'latitude': latInDeg, 'longitude': lonInDeg}
 
-# Create sample temperature and salinity data
-# Create xarray dataset
 xds = xr.Dataset(
     {
-        'dx': (['lat', 'lon'], dx, {'units': 'm'}),
-        'dy': (['lat', 'lon'], dy, {'units': 'm'}),
-        'area': (['lat', 'lon'], dx*dy, {'units': 'm^2'}),
+        'dx': (['latitude', 'longitude'], dx, {'units': 'm'}),
+        'dy': (['latitude', 'longitude'], dy, {'units': 'm'}),
+        'area': (['latitude', 'longitude'], dx*dy, {'units': 'm^2'}),
     },
     coords=coords
 )
@@ -56,8 +47,5 @@ xds = xr.Dataset(
 xds.to_netcdf(gridFileName)
 
 xds.close()
-
-
-
 
 
