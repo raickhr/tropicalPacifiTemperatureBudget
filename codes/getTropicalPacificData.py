@@ -5,14 +5,14 @@ import os
 import gc
 from datetime import datetime, timedelta
 
-startDate = datetime(2016,6,1)
-endDate = datetime(2017,6,1)
+startDate = datetime(2018,1,3)
+endDate = datetime(2018,1,3)
 curDate = startDate
 
 while curDate <= endDate:
     #print(curDate)
-    writeFname = f'/proj/cdx/hseo/Data/GLORYS12v1/PCF/GLORYS12v1_dailyAvg_{curDate.year:04d}-{curDate.month:02d}-{curDate.day:02d}.nc'
-    folder = f'/proj/cmip6/data/ocean_reanalysis/glorys12v1/{curDate.year:04d}/'
+    writeFname = f'/srv/cdx/hseo/Data/GLORYS12v1/PCF/GLORYS12v1_dailyAvg_{curDate.year:04d}-{curDate.month:02d}-{curDate.day:02d}.nc'
+    folder = f'/srv/cmip6/data/ocean_reanalysis/glorys12v1/{curDate.year:04d}/'
     fname1 = f'*{curDate.year:04d}{curDate.month:02d}{curDate.day:02d}*.nc'
     fname2 = f'*{curDate.year:04d}-{curDate.month:02d}-{curDate.day:02d}*.nc'
 

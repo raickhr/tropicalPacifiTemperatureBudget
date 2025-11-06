@@ -65,8 +65,8 @@ while cur_date <= end_date:
         # ----------------------------
         depth = ds1['depth'].values  # 1D (z), meters
         nz = depth.size
-        ny = ds1.dims['latitude']
-        nx = ds1.dims['longitude']
+        ny = ds1.sizes['latitude']
+        nx = ds1.sizes['longitude']
 
         # Compute 1D interfaces (in meters)
         depth_bottom_1d = np.empty_like(depth, dtype=float)
@@ -142,6 +142,7 @@ while cur_date <= end_date:
         for k in range(nz - 1):
             wtop_np[0, k + 1, :, :] = wtop_np[0, k, :, :] + div_np[k, :, :] * dz_np[0, k, :, :]
 
+
         # ----------------------------
         # PACKAGE INTO xarray + SAVE
         # ----------------------------
@@ -161,8 +162,13 @@ while cur_date <= end_date:
             },
         )
 
+        wcenter = 0.5 * (wtop_da.roll(depth=-1) + wtop_da)
+        wcenter[:,-1,:,:] = wtop_da[:,-1,:,:]  # bottom cell center = top interface of bottom cell
+
+
         out = ds1.copy()
         out['wtop'] = wtop_da
+        out['wo'] = wcenter
 
 
         out_file = os.path.join(folder, f'GLORYS12v1_dailyAvg_withVerticalVelocities_{cur_date:%Y-%m-%d}.nc')
@@ -181,4 +187,5 @@ while cur_date <= end_date:
             pass
 
     cur_date += timedelta(days=1)
+
 
