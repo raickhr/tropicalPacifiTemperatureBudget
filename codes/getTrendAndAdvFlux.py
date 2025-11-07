@@ -79,8 +79,8 @@ for cur_date in my_days:
         # Basic dims
         depth = ds['depth'].to_numpy()  # (z)
         nz = depth.size
-        ny = ds.dims['latitude']
-        nx = ds.dims['longitude']
+        ny = ds.sizes['latitude']
+        nx = ds.sizes['longitude']
 
         # -----------------------------------
         # Time tendencies (xarray math -> keeps attrs/coords nicely)

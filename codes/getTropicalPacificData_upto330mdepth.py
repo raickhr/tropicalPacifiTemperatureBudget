@@ -12,8 +12,11 @@ curDate = startDate
 while curDate <= endDate:
     writeFname = f'/srv/seolab/srai/tropicalPacifiTemperatureBudget/WPWP_GLORYS_data/GLORYS12v1_dailyAvg_{curDate:%Y-%m-%d}.nc'
     if os.path.exists(writeFname):
-        curDate += timedelta(days=1)
-        continue
+        print('removing file', writeFname)
+        os.remove(writeFname)
+
+        #curDate += timedelta(days=1)
+        #continue
 
     folder = f'/srv/cdx/hseo/Data/GLORYS12v1/PCF/{curDate.year:04d}/'
     fname = f'GLORYS12v1_dailyAvg_{curDate:%Y-%m-%d}.nc'
@@ -51,4 +54,5 @@ while curDate <= endDate:
         print(f'Failed to process {curDate}: {e}')
 
     curDate += timedelta(days=1)
+
 
