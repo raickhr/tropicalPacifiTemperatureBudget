@@ -7,11 +7,18 @@ import warnings
 from parcels import StatusCode
 
 from operator import attrgetter
-from datetime import timedelta
+from datetime import datetime, timedelta
 from glob import glob
 
 folder = "/srv/seolab/srai/tropicalPacifiTemperatureBudget/WPWP_GLORYS_data/"
-ufiles = sorted(glob(f"{folder}/GLORYS12v1_dailyAvg_withVerticalVelocities_2018-??-??.nc"))
+
+curDate = datetime(2018,4,1)
+endDate = datetime(2019,4,2)
+ufiles = []
+while curDate <= endDate:
+    ufiles.append(f"{folder}/GLORYS12v1_dailyAvg_withVerticalVelocities_{curDate.year:04d}-{curDate.month:02d}-{curDate.day:02d}.nc")
+    curDate += timedelta(days =1)
+#ufiles = sorted(glob(f"{folder}/GLORYS12v1_dailyAvg_withVerticalVelocities_2018-??-??.nc"))
 
 mesh_mask = f"{folder}/coordinates.nc"
 
@@ -45,6 +52,7 @@ dimensions = {
 
 fieldset = parcels.FieldSet.from_nemo(filenames, variables, dimensions)
 
+
 xpos = np.linspace(170, 225, 20)
 ypos = np.linspace(-5, 5, 10)
 X, Y = np.meshgrid(xpos, ypos)
@@ -59,7 +67,7 @@ pset = parcels.ParticleSet.from_list(
 )
 
 output_file = pset.ParticleFile(
-    name="longbox.zarr",  # the file name
+    name="longbox_corrected.zarr",  # the file name
     outputdt=timedelta(hours=6),  # the time step of the outputs
 )
 
@@ -79,10 +87,10 @@ def ClampTopDepth(particle, fieldset, time):
     # Delete any particle that hit an error (>=50 covers all errors)
     if particle.state >= StatusCode.Error:          # Error == 50
         # Optional: special-case surface crossing if submerging:
-        # if particle.state == StatusCode.ErrorThroughSurface:
-        #    particle.depth = fieldset.topW; 
-        #    return
-        particle.delete()
+        if particle.state == StatusCode.ErrorThroughSurface:
+           particle.depth = fieldset.topW; 
+        else:
+            particle.delete()
 
 
 kernels = pset.Kernel(parcels.AdvectionRK4_3D) + ClampTopDepth
@@ -90,6 +98,6 @@ kernels = pset.Kernel(parcels.AdvectionRK4_3D) + ClampTopDepth
 
 #kernels = pset.Kernel(parcels.AdvectionRK4_3D)
 pset.execute(kernels, 
-             runtime=timedelta(days=364), 
+             runtime=timedelta(days=365), 
              dt=timedelta(minutes=1),
             output_file=output_file)

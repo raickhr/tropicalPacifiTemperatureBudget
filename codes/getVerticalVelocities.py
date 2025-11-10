@@ -138,7 +138,7 @@ def process_one_day(cur_date: datetime):
             depth_bot_np[0, k, :, :] = depth_bottom_1d[k]
 
         # Top interface: SSH at the surface, internal tops = previous level bottom
-        depth_top_np[0, 0, :, :] = -ssh2d
+        depth_top_np[0, 0, :, :] =  0 #-ssh2d
         for k in range(1, nz):
             depth_top_np[0, k, :, :] = depth_bottom_1d[k-1]
 
@@ -172,7 +172,7 @@ def process_one_day(cur_date: datetime):
         # VERTICAL INTEGRATION (continuity)
         # w_top(k+1) = w_top(k) + div_h(k) * dz(k)
         # ----------------------------
-        wtop_np[0, 0, :, :] = w_surf.to_numpy()  # surface boundary condition
+        wtop_np[0, 0, :, :] =  0#w_surf.to_numpy()  # surface boundary condition
 
         div_np = horiz_div.isel(time=0).to_numpy()  # (z,y,x)
         for k in range(nz - 1):
@@ -193,6 +193,7 @@ def process_one_day(cur_date: datetime):
         wtop_da = wtop_da.fillna(0.0)
 
         wcenter = 0.5 * (wtop_da.roll(depth=-1) + wtop_da)
+        wcenter[:, 0, :, :] = 0 # setting this to zero for parcels so that particles don't cross the boundary
         wcenter[:, -1, :, :] = wtop_da[:, -1, :, :]  # bottom center = top of bottom cell
 
         out = ds1.copy()
