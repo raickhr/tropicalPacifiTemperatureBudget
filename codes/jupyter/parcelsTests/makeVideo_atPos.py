@@ -19,6 +19,13 @@ comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
 
+
+lonMin = 178.0
+lonMax = 182.0
+
+latMin = -1.0
+latMax = 1.0
+
 if rank == 0:
     print(f"[MPI] Starting with {size} ranks")
 
@@ -144,8 +151,8 @@ def combine_parcels_zarr(file_pattern: str) -> xr.Dataset:
                 out[name] = da_mapped
 
     # Drop time steps where ~all trajectories are NaN (based on lon/lat)
-    lon_all = out["lon"].values
-    lat_all = out["lat"].values
+    lon_all = out["lon"].to_numpy() # traj, time
+    lat_all = out["lat"].to_numpy() # traj, time
 
     if lon_all.shape != lat_all.shape:
         raise ValueError("lon and lat shapes do not match in combined Parcels data.")
@@ -156,6 +163,33 @@ def combine_parcels_zarr(file_pattern: str) -> xr.Dataset:
     time_keep = num_nans_time < 0.98 * ntraj  # keep times with at least 2% valid
 
     out = out.isel(time=time_keep)
+
+    # Get first index along time (per trajectory) where both lon/lat are valid
+    valid = (~np.isnan(lon_all)) & (~np.isnan(lat_all))   # [ntraj, ntime]
+    any_valid = valid.any(axis=1)                         # [ntraj]
+
+    # First True index per row; for rows with no True, keep a dummy 0 then mask out
+    firstIndex = np.argmax(valid, axis=1)                 # [ntraj]
+
+    # Gather first positions safely with paired fancy indexing
+    row = np.arange(ntraj)
+    firstLon = np.full(ntraj, np.nan, dtype=float)
+    firstLat = np.full(ntraj, np.nan, dtype=float)
+    good = any_valid
+    firstLon[good] = lon_all[row[good], firstIndex[good]]
+    firstLat[good] = lat_all[row[good], firstIndex[good]]
+
+    # Inside-box test (inclusive)
+    inside = (
+        (firstLon >= lonMin) & (firstLon <= lonMax) &
+        (firstLat >= latMin) & (firstLat <= latMax) &
+        good
+    )
+
+    # Keep only trajectories that start inside the box
+    out = out.isel(trajectory=inside)
+
+
 
     return out
 
