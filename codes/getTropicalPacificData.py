@@ -2,11 +2,12 @@ import xarray as xr
 import numpy as np
 import glob
 import os
+import sys
 import gc
 from datetime import datetime, timedelta
 
-startDate = datetime(2018,1,3)
-endDate = datetime(2018,1,3)
+startDate = datetime(2020,3,31)
+endDate = datetime(2024,12,31)
 curDate = startDate
 
 date_Str = [
@@ -45,14 +46,14 @@ date_Str = [
 date_List = [datetime.strptime(date, '%Y-%m-%d') for date in date_Str]
 
 #while curDate <= endDate:
-for curDate in date_List:
+#for curDate in date_List:
 
-#while curDate <= endDate:
-    #print(curDate)
+while curDate <= endDate:
+    print(curDate)
     writeFname = f'/proj/cdx/hseo/Data/GLORYS12v1/PCF/{curDate.year:04d}/GLORYS12v1_dailyAvg_{curDate.year:04d}-{curDate.month:02d}-{curDate.day:02d}.nc'
     folder = f'/proj/cmip6/data/ocean_reanalysis/glorys12v1/{curDate.year:04d}/'
     fname1 = f'*{curDate.year:04d}{curDate.month:02d}{curDate.day:02d}_R*.nc'
-    fname2 = f'*{curDate.year:04d}-{curDate.month:02d}-{curDate.day:02d}_R*.nc'
+    fname2 = f'*{curDate.year:04d}-{curDate.month:02d}-{curDate.day:02d}.nc'
 
     readFname1 = glob.glob(folder+fname1)
     readFname2 = glob.glob(folder+fname2)
@@ -65,9 +66,9 @@ for curDate in date_List:
         readFname = readFname2[0]
     else:
         print('ERROR', curDate)
+        sys.exit()
 
-
-    print(curDate)
+    #print(curDate)
     ds = xr.open_dataset(readFname)
     subds = ds.sel(latitude = slice(-21,21))
     
@@ -77,7 +78,7 @@ for curDate in date_List:
 
     #print(subds)
     subds.to_netcdf(writeFname, unlimited_dims='time')
-    #curDate += timedelta(days=1)
+    curDate += timedelta(days=1)
     ds.close()
     subds.close()
     del ds, subds
